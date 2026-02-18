@@ -1,10 +1,10 @@
 import socket
 import os
 
-SERVER_HOST = "0.0.0.0"   # change if remote
+SERVER_HOST = "0.0.0.0"   
 SERVER_PORT = 2121
 USERNAME = "pramananda"
-FILE_PATH = "./demo-code/main.py"
+FILE_PATH = "./demo-code/main.cpp"
 
 
 def recv_line(sock):
@@ -44,6 +44,12 @@ def main():
             sock.sendall(chunk)
 
     # Transfer complete
+    print(recv_line(sock))
+
+    # Print Result
+    print(recv_line(sock))
+
+    #Print Error
     print(recv_line(sock))
 
     # Quit

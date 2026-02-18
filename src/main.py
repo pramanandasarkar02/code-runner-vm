@@ -2,10 +2,11 @@ import hashlib
 from datetime import datetime
 import os
 import socket
+import subprocess
 
 HOST = "0.0.0.0"
 PORT = 2121
-FTP_ROOT = "./tmp/ftp"
+FTP_ROOT = "./tmp"
 
 os.makedirs(FTP_ROOT, exist_ok=True)
 
@@ -16,6 +17,25 @@ def create_hash_dir(username: str) -> str:
     dir_path = os.path.join(FTP_ROOT, hash_name)
     os.makedirs(dir_path, exist_ok=True)
     return dir_path
+
+def run_code(file_path):
+    baseName = os.path.basename(file_path)
+    ext = baseName.split(".")[-1]
+
+    result = None
+    error = None
+
+    if ext == "py":
+        result = subprocess.run(["python", file_path], capture_output=True, text=True, check=True)
+        if result.stderr:
+            error = result.stderr
+        result = result.stdout
+    else:
+        result, error = "", "Unsupported File Format"
+
+    if result == None: result = ""
+    if error == None: error = ""
+    return result, error
 
 
 def send(conn, msg):
@@ -79,8 +99,14 @@ def handle_client(conn):
             send(conn, "File transfer complete")
             print(f"Saved file to: {file_path}")
 
+            res, err = run_code(file_path=file_path)
+            send(conn, f"Result: {res}")
+            send(conn, f"Error: {err}")
+            print(f"Send \tresult: {res} \n\terror: {err} \n\tuser: {username}")
+
+
         elif parts[0] == "QUIT":
-            send(conn, "Goodbye")
+            send(conn, "Connection Closed")
             break
 
         else:
